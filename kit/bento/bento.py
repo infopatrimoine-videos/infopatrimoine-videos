@@ -189,23 +189,29 @@ def abs_time(timing, si, idx, delay=0.0):
 
 def camera(T_, timing):
     keys = [(abs_time(timing, s, i, dl), reg) for s, i, dl, reg in CAM]
-    reg = keys[0][1]; prev = keys[0][1]; k = 1.0
-    for j, (tk, rg) in enumerate(keys):
-        if T_ >= tk: prev = keys[j - 1][1] if j else rg; reg = rg; k = ease_io((T_ - tk) / 1.0)
-    x0, y0, x1, y1 = [lerp(a, b, k) for a, b in zip(prev, reg)]
+    MOVE = 1.1
+    start = keys[0][1]; reg = keys[0][1]; k = 1.0
+    for j in range(1, len(keys)):
+        tk, rg = keys[j]
+        if T_ < tk: break
+        kp = ease_io(clamp((tk - keys[j - 1][0]) / MOVE)) if j > 1 else 1.0
+        start = tuple(lerp(a, b, kp) for a, b in zip(start, reg)) if j > 1 else keys[0][1]
+        reg = rg; k = ease_io(clamp((T_ - tk) / MOVE))
+    x0, y0, x1, y1 = [lerp(a, b, k) for a, b in zip(start, reg)]
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     zoom = min(1.55, 1000 / (x1 - x0), 1640 / (y1 - y0))
-    move = math.sin(math.pi * clamp(k)) if k < 1 else 0.0          # tilt while moving, like the clip
+    move = math.sin(math.pi * clamp(k))          # tilt while moving, like the clip
     rx = 4 + 7 * move + 1.2 * math.sin(T_ * 0.7); ry = -3 - 6 * move + 1.2 * math.cos(T_ * 0.6)
     return cx, cy, zoom, rx, ry
 
 _cache = {}
 def tile_img(name, p, t):
-    key = (name, round(p, 2), round(min(t, 4.0), 1) if name != "C1" else round(t, 2))
-    if name == "C1" or key not in _cache:
-        img = DRAW[name](p, t)
-        if name != "C1": _cache[key] = img
-        return img
+    if name == "C1": return DRAW[name](p, t)               # clock keeps ticking
+    tq = round(t * 30) / 30 if t < 3.6 else 3.6            # animations finish by ~3.5 s
+    key = (name, round(p, 3), tq)
+    if key not in _cache:
+        if len(_cache) > 400: _cache.clear()
+        _cache[key] = DRAW[name](p, tq)
     return _cache[key]
 
 _bg = None
@@ -251,7 +257,7 @@ def frame_at(T_, timing):
     si = max(i for i in range(len(timing)) if T_ >= timing[i][0])
     st, D, B = timing[si]; u = T_ - st
     if si == 0:   # hook title card (neon glass) over dimmed bento
-        a = min(ease((u - 0.5) / 0.5), ease((D - 0.3 - u) / 0.4))
+        a = ease((D - 0.3 - u) / 0.4)
         if a > 0.01:
             lay.alpha_composite(Image.new("RGBA", (W, H), (230, 231, 234, int(150 * a))))
             card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -261,7 +267,7 @@ def frame_at(T_, timing):
             card.alpha_composite(gl.filter(ImageFilter.GaussianBlur(40)))
             cd = ImageDraw.Draw(card)
             cd.rounded_rectangle(neon_box, 70, fill=(14, 14, 18, int(250 * a)), outline=(255, 130, 126, int(255 * a)), width=4)
-            sc = 0.9 + 0.1 * ease((u - 0.5) / 0.6)
+            sc = 1.0
             cd.text((W / 2, 830), HOOK["title"], font=F("B", int((150 if len(HOOK["title"]) < 9 else 1250 // max(9, len(HOOK["title"]))) * sc)), fill=(255, 255, 255, int(255 * a)), anchor="mm")
             cd.text((W / 2, 965), HOOK.get("sub", ""), font=F("M", 44), fill=(255, 150, 146, int(255 * a)), anchor="mm")
             lay.alpha_composite(card)
@@ -296,11 +302,13 @@ def frame_at(T_, timing):
             lg = MT.logo(170)
             if lg is not None:
                 im = lg.copy(); im.putalpha(im.getchannel("A").point(lambda v: int(v * ac))); lay.alpha_composite(im, (W // 2 - 85, 990))
+            cl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(cl)
             s = "Abonne-toi à Info Patrimoine"; f = F("B", 44); tw = d.textlength(s, font=f)
             d.rounded_rectangle([W / 2 - tw / 2 - 44, 1200, W / 2 + tw / 2 + 44, 1300], 50, fill=(12, 12, 16, int(245 * ac)))
             d.text((W / 2, 1250), s, font=f, fill=(255, 255, 255, int(255 * ac)), anchor="mm")
             d.text((W / 2, 1350), "Une notion de patrimoine par jour · info pédagogique, pas un conseil",
                    font=F("R", 28), fill=(80, 82, 90, int(255 * ac)), anchor="mm")
+            lay.alpha_composite(cl)
     img.alpha_composite(lay)
     tot = timing[-1][0] + timing[-1][1]
     ImageDraw.Draw(img).rectangle([0, 0, int(W * T_ / tot), 6], fill=CORAL + (255,))
