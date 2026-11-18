@@ -24,7 +24,7 @@ if __name__ == "__main__":
     with Pool(os.cpu_count() or 2) as pl: pl.map(job, range(K))
     open("list.txt", "w").write("".join(f"file 'part{k}.mp4'\n" for k in range(K)))
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", "list.txt", "-c", "copy", "video.mp4"], check=True)
-    build.mix_audio(voice, DUR, "mix.wav")
+    import mixer; mixer.mix_audio(voice, DUR, "mix.wav")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", "video.mp4", "-i", "mix.wav", "-map", "0:v", "-map", "1:a", "-c:v", "copy",
                     "-c:a", "aac", "-b:a", "192k", "-shortest", out], check=True)
     for t in [2, DUR * 0.25, DUR * 0.5, DUR * 0.75, DUR - 1]:
