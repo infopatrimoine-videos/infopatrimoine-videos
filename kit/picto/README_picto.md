@@ -33,4 +33,4 @@ Valeurs à l'écran en notation française (« 1 870,20 € »), pas de date.
 ## Commandes
 - Aperçu : `python3 picto.py stills jour x <durée_s ou voice.mp3> 0 5 10 ...` → stills.png
   (avec la voix : `python3 picto.py stills jour timing_jour.json voice.mp3 ...`)
-- Montage : `python3 build_picto.py jour voice.mp3 final.mp4` (≈ 4 min, sortie ≈ 45 Mo : un fichier plus lourd ralentit la publication TikTok)
+- Montage : `python3 build_picto.py jour voice.mp3 final.mp4` (≈ 4 min, sortie ≈ 80-90 Mo, qualité voulue par Tomas ; TikTok met environ 30 min à publier, d'où la programmation à 17:30)
