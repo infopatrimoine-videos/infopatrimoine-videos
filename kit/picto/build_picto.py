@@ -19,7 +19,7 @@ N = int(DUR * 30); K = 4
 def job(k):
     a, b = k * N // K, (k + 1) * N // K; tmp = f"part{k}.tmp.mp4"
     p = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920", "-r", "30", "-i", "-",
-                          "-c:v", "libx264", "-b:v", "9M", "-maxrate", "12M", "-bufsize", "18M", "-preset", "veryfast", "-pix_fmt", "yuv420p", tmp],
+                          "-c:v", "libx264", "-b:v", "5M", "-maxrate", "7M", "-bufsize", "10M", "-preset", "veryfast", "-pix_fmt", "yuv420p", tmp],
                          stdin=subprocess.PIPE)
     for i in range(a, b): p.stdin.write(picto.frame(i / 30).tobytes())
     p.stdin.close(); assert p.wait() == 0; os.rename(tmp, f"part{k}.mp4")
