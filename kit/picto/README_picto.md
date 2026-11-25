@@ -34,3 +34,9 @@ Valeurs à l'écran en notation française (« 1 870,20 € »), pas de date.
 - Aperçu : `python3 picto.py stills jour x <durée_s ou voice.mp3> 0 5 10 ...` → stills.png
   (avec la voix : `python3 picto.py stills jour timing_jour.json voice.mp3 ...`)
 - Montage : `python3 build_picto.py jour voice.mp3 final.mp4` (≈ 4 min, sortie ≈ 80-90 Mo, qualité voulue par Tomas ; TikTok met environ 30 min à publier, d'où la programmation à 17:30)
+
+## Mode NARRATIF (demandé par Tomas le 25/11/2026) — format par défaut
+Une histoire continue avec un personnage (« Prenons Claire… »), qui déroule le mécanisme du début à la fin, sans « Un / Deux / Trois ».
+- Scènes `step` SANS `num` ni `kicker` : pas de pastille d'étape à l'écran ; chaque scène = un moment de l'histoire.
+- Minutage : `align_story.py` cale chaque phrase sur la transcription (plus besoin de marqueurs « Un, Deux… »).
+- Modèle : `PICTO["plus_value"]`.

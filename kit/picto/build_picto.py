@@ -10,8 +10,10 @@ name, voice, out = sys.argv[1:4]
 SPEC = picto_specs.PICTO[name]
 tj = f"timing_{name}.json"
 if os.path.exists(tj): timing = [tuple(x) for x in json.load(open(tj))]
-else:
+elif any(s.get("num") for s in SPEC["scenes"] if s["type"] == "step"):
     timing, _ = build.align(SPEC["scenes"], voice); json.dump(timing, open(tj, "w"))
+else:                                    # narrative video: align every sentence by transcription
+    import align_story; timing = align_story.align(SPEC["scenes"], voice); json.dump(timing, open(tj, "w"))
 VD = picto.voice_duration(voice); DUR = VD + 0.6
 timing[-1] = (timing[-1][0], DUR - timing[-1][0], timing[-1][2])
 picto.load(SPEC, timing, VD)

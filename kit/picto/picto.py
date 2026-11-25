@@ -523,13 +523,13 @@ def frame(T):
     else:
         PN[P_["type"]](L, u, T, P_)
     sc = scene_of(T); scn = SPEC["scenes"][sc]
-    if scn["type"] == "step":
+    if scn["type"] == "step" and scn.get("num"):       # narrative scenes (no "num") have no step pill
         st = TIMING[sc][0]; en = st + TIMING[sc][1]; a = min(ease((T - st - 0.2) / 0.3), ease((en - T - 0.1) / 0.2))
         if a > 0.01:
             s = f"{scn['num']} · {scn['kicker']}"; f = F("XB", 40); tw = f.getlength(s); d = ImageDraw.Draw(L)
             d.rounded_rectangle([W / 2 - tw / 2 - 34, 150, W / 2 + tw / 2 + 34, 236], 43, outline=WH + (int(255 * a),), width=4)
             d.text((W / 2, 193), s, font=f, fill=WH + (int(255 * a),), anchor="mm")
-            nmax = max(x.get("num", 0) for x in SPEC["scenes"])
+            nmax = max(x.get("num") or 0 for x in SPEC["scenes"])
             for n in range(1, nmax + 1):
                 x = W / 2 + (n - (nmax + 1) / 2) * 36; r = 9 if n == scn["num"] else 6
                 d.ellipse([x - r, 270 - r, x + r, 270 + r], fill=(WH if n <= scn["num"] else (70, 70, 76)) + (int(255 * a),))
