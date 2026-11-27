@@ -47,8 +47,14 @@ def arrow(img, pts, width, color=GOLD, head=None):
     lay.alpha_composite(hi.filter(ImageFilter.GaussianBlur(3 * S)))
     img.alpha_composite(lay)
 
+import re
+def keep_units(text):
+    """non-breaking space between a number and its unit / between digit groups (12,4 %, 100 000 €)."""
+    text = re.sub(r"(\d) (?=\d{3}\b)", "\\1\u00a0", text)
+    return re.sub(r"(\d) (?=(%|€|\$|Md|M€|Md€|Md\$|ans?|mois|points?)\b|%|€)", "\\1\u00a0", text)
+
 def wrap(d, text, font, maxw):
-    words = text.split(); lines = []; cur = ""
+    words = keep_units(text).split(" "); lines = []; cur = ""
     for w in words:
         t = (cur + " " + w).strip()
         if d.textlength(t, font=font) <= maxw: cur = t
