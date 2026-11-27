@@ -1,0 +1,25 @@
+{
+ "slides": [
+  {
+   "visual": "arrow_down",
+   "title": "L'IA fait déjà reculer les offres d'emploi en France, selon Coface"
+  },
+  {
+   "visual": "grid",
+   "faded_from": 18,
+   "value": "100 000",
+   "unit": "",
+   "title": "Plus de 100 000 offres d'emploi manquent chaque année dans les métiers les plus exposés à l'IA",
+   "size": 60
+  }
+ ],
+ "story": {
+  "title": "L'IA fait déjà reculer les offres d'emploi en France",
+  "facts": [
+   "−12,4 % d'offres dans les métiers exposés",
+   "+100 000 offres manquantes par an",
+   "Cols blancs : jusqu'à −30 %"
+  ],
+  "source": "Source : Coface & OEM, indicateur AI-LERT (17/11/2026)"
+ }
+}
