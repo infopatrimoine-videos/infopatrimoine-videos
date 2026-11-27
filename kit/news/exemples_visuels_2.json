@@ -1,0 +1,23 @@
+{"slides":[
+{"visual":"donut","frac":0.58,"value":"58 %","label":"des ménages sont\npropriétaires","title":"« donut » : une part d'un tout (propriétaires, part de marché…)"},
+{"visual":"ranking","items":[["France",3.1,"3,1 %"],["Italie",2.6,"2,6 %"],["Espagne",2.2,"2,2 %"],["Allemagne",1.9,"1,9 %"],["Pays-Bas",1.4,"1,4 %"]],"hi":0,"title":"« ranking » : un classement entre pays, banques, villes…"},
+{"visual":"thermo","frac":0.72,"value":"+4,8 %","label":"prix de\nl'électricité","title":"« thermo » : un thermomètre pour ce qui chauffe (prix, inflation)"},
+{"visual":"calendar","day":"1er","month":"janvier","label":"entrée en vigueur","title":"« calendar » : une date clé, une échéance, une réforme"},
+{"visual":"people","total":10,"k":3,"value":"3 sur 10","label":"Français épargnent chaque mois","title":"« people » : k personnes sur 10"},
+{"visual":"stat3","items":[["1 950 Md€","assurance vie\nencours total"],["+2,6 %","rendement moyen\nfonds euros"],["4,1 Md€","collecte nette\nen octobre"]],"title":"« stat3 » : trois chiffres clés empilés"},
+{"visual":"timeline","items":[["2024","taux\n4 %"],["2025","taux\n2,5 %"],["2026","taux\n2 %"],["2027","prévision\n?"]],"hi":2,"title":"« timeline » : une frise des étapes ou des dates"},
+{"visual":"ticker","rows":[["CAC 40","7 812","+1,2 %",true],["DAX","19 340","+0,8 %",true],["S&P 500","6 020","−0,4 %",false],["Or","2 610 $","+0,6 %",true],["Brent","72 $","−1,9 %",false]],"title":"« ticker » : un tableau de marché (Bourse, matières premières)"},
+{"visual":"balance","left":["1 320 Md€","recettes"],"right":["1 470 Md€","dépenses"],"tilt":0.6,"title":"« balance » : une balance pour un budget, un déficit"},
+{"visual":"waffle","frac":0.27,"value":"27 %","label":"des actifs\nen télétravail","title":"« waffle » : une grille de 100 cases pour un pourcentage"},
+{"visual":"progress","frac":0.62,"value":"62 %","label":"de l'objectif de logements construits","target":0.8,"target_txt":"objectif 2026","title":"« progress » : une barre vers un objectif"},
+{"visual":"quote","text":"Le pic de l'inflation est derrière nous","who":"Banque de France, nov. 2026 (exemple)","title":"« quote » : une citation officielle courte, mot pour mot"},
+{"visual":"receipt","rows":[["Pâtes 500 g","1,19 €"],["Café 250 g","3,85 €"],["Lait 1 L","1,05 €"],["Huile 1 L","2,90 €"]],"total":["TOTAL","8,99 €"],"title":"« receipt » : un ticket de caisse pour les prix du quotidien"},
+{"visual":"icon","icon":"piggy","value":"18,2 %","title":"Nouveaux pictos : tirelire"},
+{"visual":"icon","icon":"car","value":"−8 %","title":"Nouveaux pictos : voiture"},
+{"visual":"icon","icon":"bolt","value":"+4,8 %","title":"Nouveaux pictos : énergie"},
+{"visual":"icon","icon":"plane","value":"+6 %","title":"Nouveaux pictos : avion"},
+{"visual":"icon","icon":"shield","value":"100 000 €","title":"Nouveaux pictos : protection / garantie"},
+{"visual":"icon","icon":"hourglass","value":"64 ans","title":"Nouveaux pictos : sablier (retraite, délais)"},
+{"visual":"icon","icon":"key","value":"3,2 %","title":"Nouveaux pictos : clé (crédit immo, achat)"},
+{"visual":"icon","icon":"note","value":"1 801 €","title":"Nouveaux pictos : billet (salaire, Smic)"}
+]}
