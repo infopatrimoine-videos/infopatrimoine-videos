@@ -107,6 +107,124 @@ def icon_grid(img, x0, y0, cols, rows, cell, faded_from, missing_mark=True):
                 d.line([x + w * 0.3, y + h * 0.3, x + w * 0.7, y + h * 0.7], fill=GOLD + (200,), width=4 * S)
                 d.line([x + w * 0.7, y + h * 0.3, x + w * 0.3, y + h * 0.7], fill=GOLD + (200,), width=4 * S)
 
+
+# ---------------- extra visuals ----------------
+def _translucent(img, fn):
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0)); fn(ImageDraw.Draw(lay)); img.alpha_composite(lay)
+
+def _gold_glow(img, fn, blur=30, strength=0.9):
+    g, _ = glow_layer(img.size, fn, blur * S, strength); img.alpha_composite(g)
+
+def bars(img, x0, y0, w, h, values, labels, hi=-1, fmt=None):
+    """bar chart around a zero line; highlighted bar in gold with glow, others white/muted."""
+    d = ImageDraw.Draw(img); n = len(values); vmax = max(abs(v) for v in values) or 1
+    pos = any(v > 0 for v in values); neg = any(v < 0 for v in values)
+    zero = y0 + h * (0.5 if pos and neg else (1.0 if pos else 0.0))
+    scale = h * (0.45 if pos and neg else 0.9) / vmax; bw = w / n * 0.56
+    hi = hi % n
+    for i, v in enumerate(values):
+        cx = x0 + w / n * (i + 0.5); top = zero - v * scale
+        box = [(cx - bw / 2) * S, min(zero, top) * S, (cx + bw / 2) * S, max(zero, top) * S + (2 * S if v == 0 else 0)]
+        if i == hi:
+            _gold_glow(img, lambda dd: dd.rounded_rectangle(box, 12 * S, fill=GOLD + (255,)), 28)
+            d.rounded_rectangle(box, 12 * S, fill=GOLD + (255,))
+        else:
+            _translucent(img, lambda dd, b=box: dd.rounded_rectangle(b, 12 * S, fill=(255, 255, 255, 70)))
+        val = fmt(v) if fmt else (("+" if v > 0 else "") + f"{v:.1f}".replace(".", ",") + " %")
+        ty = (top - 34) if v >= 0 else (top + 34)
+        d.text((cx * S, ty * S), val, font=F("B", 34 * S), fill=(GOLD if i == hi else WHITE) + (255,), anchor="mm")
+        d.text((cx * S, (y0 + h + 95) * S), labels[i], font=F("M", 30 * S), fill=MUTED + (255,), anchor="mm")
+    _translucent(img, lambda dd: dd.line([x0 * S, zero * S, (x0 + w) * S, zero * S], fill=(255, 255, 255, 120), width=2 * S))
+
+def line_chart(img, x0, y0, w, h, values, labels=None, value_txt=None):
+    d = ImageDraw.Draw(img); lo, hi_ = min(values), max(values); rng = (hi_ - lo) or 1
+    pts = [((x0 + w * i / (len(values) - 1)) * S, (y0 + h - (v - lo) / rng * h) * S) for i, v in enumerate(values)]
+    _translucent(img, lambda dd: [dd.line([x0 * S, (y0 + h * k / 4) * S, (x0 + w) * S, (y0 + h * k / 4) * S], fill=(255, 255, 255, 28), width=2 * S) for k in range(5)])
+    poly = pts + [(pts[-1][0], (y0 + h) * S), (pts[0][0], (y0 + h) * S)]
+    area = Image.new("RGBA", img.size, (0, 0, 0, 0)); ImageDraw.Draw(area).polygon(poly, fill=GOLD + (45,)); img.alpha_composite(area)
+    _gold_glow(img, lambda dd: dd.line(pts, fill=GOLD + (255,), width=10 * S, joint="curve"), 22)
+    d.line(pts, fill=GOLD + (255,), width=8 * S, joint="curve")
+    x, y = pts[-1]; r = 18 * S
+    _gold_glow(img, lambda dd: dd.ellipse([x - r * 2, y - r * 2, x + r * 2, y + r * 2], fill=GOLD_HI + (255,)), 20)
+    d.ellipse([x - r, y - r, x + r, y + r], fill=WHITE + (255,), outline=GOLD + (255,), width=6 * S)
+    if value_txt:
+        d.text(((x0 + w) * S, (y0 - 30) * S), value_txt, font=F("XB", 72 * S), fill=GOLD + (255,), anchor="rb")
+    if labels:
+        for i, lb in enumerate(labels):
+            if lb: d.text(((x0 + w * i / (len(values) - 1)) * S, (y0 + h + 40) * S), lb, font=F("M", 28 * S), fill=MUTED + (255,), anchor="mm")
+
+def gauge(img, cx, cy, r, frac, value, label, lo_txt="", hi_txt=""):
+    d = ImageDraw.Draw(img); box = [(cx - r) * S, (cy - r) * S, (cx + r) * S, (cy + r) * S]
+    _translucent(img, lambda dd: dd.arc(box, 180, 360, fill=(255, 255, 255, 45), width=46 * S))
+    end = 180 + 180 * max(0, min(1, frac))
+    _gold_glow(img, lambda dd: dd.arc(box, 180, end, fill=GOLD + (255,), width=46 * S), 26)
+    d.arc(box, 180, end, fill=GOLD + (255,), width=46 * S)
+    a = math.radians(end); nx, ny = cx + math.cos(a) * (r - 80), cy + math.sin(a) * (r - 80)
+    d.line([cx * S, cy * S, nx * S, ny * S], fill=WHITE + (255,), width=10 * S)
+    d.ellipse([(cx - 22) * S, (cy - 22) * S, (cx + 22) * S, (cy + 22) * S], fill=WHITE + (255,))
+    d.text((cx * S, (cy + 110) * S), value, font=F("XB", 120 * S), fill=GOLD + (255,), anchor="mm")
+    d.text((cx * S, (cy + 200) * S), label, font=F("M", 34 * S), fill=MUTED + (255,), anchor="mm")
+    d.text(((cx - r) * S, (cy + 50) * S), lo_txt, font=F("M", 28 * S), fill=MUTED + (255,), anchor="mm")
+    d.text(((cx + r) * S, (cy + 50) * S), hi_txt, font=F("M", 28 * S), fill=MUTED + (255,), anchor="mm")
+
+def versus(img, y, left, right):
+    """two figures side by side: left = (value, label) muted, right = (value, label) gold."""
+    d = ImageDraw.Draw(img)
+    for (val, lab), cx, col in ((left, 290, WHITE), (right, 790, GOLD)):
+        if col == GOLD: _gold_glow(img, lambda dd: dd.text((cx * S, y * S), val, font=F("XB", 120 * S), fill=GOLD + (255,), anchor="mm"), 30, 0.7)
+        d.text((cx * S, y * S), val, font=F("XB", 120 * S), fill=col + (255,), anchor="mm")
+        for k, ln in enumerate(lab.split("\n")):
+            d.text((cx * S, (y + 100 + k * 44) * S), ln, font=F("M", 34 * S), fill=MUTED + (255,), anchor="mm")
+    d.text((540 * S, y * S), "→", font=F("B", 90 * S), fill=GOLD + (255,), anchor="mm")
+
+ICONS = {}
+def icon(img, name, cx, cy, s):
+    """large glowing gold pictogram: house, coins, factory, cart, globe, briefcase, percent, bank, chip, oil"""
+    def draw(dd, col):
+        c = col + (255,); X = lambda v: (cx + v * s) * S; Y = lambda v: (cy + v * s) * S
+        if name == "house":
+            dd.polygon([(X(-1), Y(-0.1)), (X(0), Y(-1)), (X(1), Y(-0.1))], fill=c)
+            dd.rectangle([X(-0.75), Y(-0.15), X(0.75), Y(0.9)], fill=c)
+            dd.rectangle([X(-0.2), Y(0.35), X(0.2), Y(0.9)], fill=NAVY0 + (255,))
+            dd.rectangle([X(0.35), Y(-0.75), X(0.6), Y(-0.35)], fill=c)
+        elif name == "coins":
+            for k in range(4):
+                dd.ellipse([X(-0.8), Y(0.55 - k * 0.42), X(0.8), Y(0.95 - k * 0.42)], fill=c, outline=NAVY0 + (255,), width=6 * S)
+            dd.text((X(0), Y(-0.5)), "€", font=F("XB", int(s * 0.55) * S), fill=NAVY0 + (255,), anchor="mm")
+        elif name == "factory":
+            dd.polygon([(X(-1), Y(0.9)), (X(-1), Y(-0.1)), (X(-0.5), Y(-0.45)), (X(-0.5), Y(-0.1)), (X(0), Y(-0.45)), (X(0), Y(-0.1)), (X(0.5), Y(-0.45)), (X(0.5), Y(-1)), (X(0.8), Y(-1)), (X(0.8), Y(-0.1)), (X(1), Y(-0.1)), (X(1), Y(0.9))], fill=c)
+            for k in range(3): dd.rectangle([X(-0.8 + k * 0.55), Y(0.25), X(-0.55 + k * 0.55), Y(0.5)], fill=NAVY0 + (255,))
+        elif name == "cart":
+            dd.line([X(-1), Y(-0.8), X(-0.7), Y(-0.8), X(-0.4), Y(0.4), X(0.8), Y(0.4)], fill=c, width=int(s * 0.12) * S, joint="curve")
+            dd.polygon([(X(-0.6), Y(-0.5)), (X(1), Y(-0.5)), (X(0.8), Y(0.2)), (X(-0.45), Y(0.2))], fill=c)
+            for xx in (-0.3, 0.65): dd.ellipse([X(xx - 0.15), Y(0.6), X(xx + 0.15), Y(0.9)], fill=c)
+        elif name == "globe":
+            dd.ellipse([X(-1), Y(-1), X(1), Y(1)], outline=c, width=int(s * 0.1) * S)
+            dd.ellipse([X(-0.45), Y(-1), X(0.45), Y(1)], outline=c, width=int(s * 0.07) * S)
+            for yy in (-0.45, 0, 0.45): dd.line([X(-0.92 if yy else -1), Y(yy), X(0.92 if yy else 1), Y(yy)], fill=c, width=int(s * 0.07) * S)
+        elif name == "briefcase":
+            dd.rounded_rectangle([X(-1), Y(-0.45), X(1), Y(0.85)], int(s * 0.15) * S, fill=c)
+            dd.rounded_rectangle([X(-0.35), Y(-0.85), X(0.35), Y(-0.45)], int(s * 0.1) * S, outline=c, width=int(s * 0.1) * S)
+            dd.rectangle([X(-1), Y(0.05), X(1), Y(0.12)], fill=NAVY0 + (255,))
+        elif name == "percent":
+            dd.text((X(0), Y(0)), "%", font=F("XB", int(s * 2.1) * S), fill=c, anchor="mm")
+        elif name == "bank":
+            dd.polygon([(X(-1), Y(-0.45)), (X(0), Y(-1)), (X(1), Y(-0.45))], fill=c)
+            for k in range(4): dd.rectangle([X(-0.8 + k * 0.48), Y(-0.3), X(-0.62 + k * 0.48), Y(0.6)], fill=c)
+            dd.rectangle([X(-1), Y(0.7), X(1), Y(0.9)], fill=c)
+        elif name == "chip":
+            dd.rounded_rectangle([X(-0.6), Y(-0.6), X(0.6), Y(0.6)], int(s * 0.1) * S, fill=c)
+            for k in range(5):
+                o = -0.48 + k * 0.24
+                for a, b2 in (((o, -0.95), (o, -0.6)), ((o, 0.6), (o, 0.95)), ((-0.95, o), (-0.6, o)), ((0.6, o), (0.95, o))):
+                    dd.line([X(a[0]), Y(a[1]), X(b2[0]), Y(b2[1])], fill=c, width=int(s * 0.07) * S)
+            dd.text((X(0), Y(0)), "IA", font=F("XB", int(s * 0.5) * S), fill=NAVY0 + (255,), anchor="mm")
+        elif name == "oil":
+            dd.polygon([(X(0), Y(-1)), (X(0.62), Y(0.05)), (X(-0.62), Y(0.05))], fill=c)
+            dd.ellipse([X(-0.66), Y(-0.4), X(0.66), Y(0.95)], fill=c)
+    _gold_glow(img, lambda dd: draw(dd, GOLD), 40, 0.8)
+    draw(ImageDraw.Draw(img), GOLD)
+
 def page_tag(img, W, k, n):
     lay = Image.new("RGBA", img.size, (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
     dl.rounded_rectangle([(W - 150) * S, 60 * S, (W - 44) * S, 124 * S], 32 * S, fill=(255, 255, 255, 38))
@@ -118,32 +236,51 @@ def finish(img, out):
     W, H = img.size
     img.convert("RGB").resize((W // S, H // S), Image.LANCZOS).save(out, quality=95)
 
+def draw_visual(img, sl, dy=0):
+    """dy shifts the visual down (story)."""
+    W = 1080
+    sl = dict(sl)
+    for k in ("y", "fig_y"):
+        if k in sl: sl[k] += dy
+    if sl["visual"] == "arrow_down":
+        P = [(x * S, y * S) for x, y in [(-40, 140 + dy), (190, 420 + dy), (380, 290 + dy), (640, 650 + dy), (780, 540 + dy), (960, 860 + dy)]]
+        arrow(img, P, 64 * S)
+    elif sl["visual"] == "arrow_up":
+        P = [(x * S, y * S) for x, y in [(-40, 860 + dy), (190, 600 + dy), (380, 720 + dy), (640, 360 + dy), (780, 470 + dy), (960, 170 + dy)]]
+        arrow(img, P, 64 * S)
+    elif sl["visual"] == "figure":
+        big_figure(img, W / 2, sl.get("fig_y", 430 + dy), sl["value"], sl.get("unit", ""), sl.get("label", ""))
+    elif sl["visual"] == "bars":
+        bars(img, 120, sl.get("y", 230 + dy), 840, 520, sl["values"], sl["labels"], sl.get("hi", -1))
+    elif sl["visual"] == "line":
+        line_chart(img, 110, sl.get("y", 260 + dy), 860, 460, sl["values"], sl.get("labels"), sl.get("value_txt"))
+    elif sl["visual"] == "gauge":
+        gauge(img, 540, sl.get("y", 600 + dy), 330, sl["frac"], sl["value"], sl.get("label", ""), sl.get("lo", ""), sl.get("hi", ""))
+    elif sl["visual"] == "versus":
+        versus(img, sl.get("y", 480 + dy), sl["left"], sl["right"])
+    elif sl["visual"] == "icon":
+        icon(img, sl["icon"], 540, sl.get("y", 420 + dy), sl.get("s", 210))
+        if sl.get("value"): big_figure(img, 540, sl.get("y", 420 + dy) + 330, sl["value"], "", "", size=120)
+    elif sl["visual"] == "grid":
+        icon_grid(img, 150, 200 + dy, 6, 4, 130, sl.get("faded_from", 18))
+        big_figure(img, W / 2, 790 + dy, sl["value"], sl.get("unit", ""), "", size=130)
+
+
 def render(spec, outdir):
     os.makedirs(outdir, exist_ok=True); outs = []
     n = len(spec["slides"])
     for k, sl in enumerate(spec["slides"], 1):
         W, H = 1080, 1350
         img = bg(W * S, H * S, glow=sl.get("glow", (0.55, 0.38)))
-        if sl["visual"] == "arrow_down":
-            P = [(x * S, y * S) for x, y in [(-40, 140), (190, 420), (380, 290), (640, 650), (780, 540), (960, 860)]]
-            arrow(img, P, 64 * S)
-        elif sl["visual"] == "arrow_up":
-            P = [(x * S, y * S) for x, y in [(-40, 860), (190, 600), (380, 720), (640, 360), (780, 470), (960, 170)]]
-            arrow(img, P, 64 * S)
-        elif sl["visual"] == "figure":
-            big_figure(img, W / 2, sl.get("fig_y", 430), sl["value"], sl.get("unit", ""), sl.get("label", ""))
-        elif sl["visual"] == "grid":
-            icon_grid(img, 150, 200, 6, 4, 130, sl.get("faded_from", 18))
-            big_figure(img, W / 2, 790, sl["value"], sl.get("unit", ""), "", size=130)
+        draw_visual(img, sl)
         logo(img, 64, 48, 118)
-        page_tag(img, W, k, n)
+        if spec.get("page_tag"): page_tag(img, W, k, n)   # désactivé par défaut (demande de Tomas, 27/11)
         headline(img, sl["title"], 80, 1270, 900, sl.get("size", 64))
         out = os.path.join(outdir, f"post_{k}.jpg"); finish(img, out); outs.append(out)
     if spec.get("story"):
         st = spec["story"]; W, H = 1080, 1920
         img = bg(W * S, H * S, glow=(0.55, 0.4))
-        P = [(x * S, y * S) for x, y in [(-40, 330), (190, 620), (380, 490), (640, 860), (780, 750), (960, 1080)]]
-        arrow(img, P, 64 * S) if st.get("visual", "arrow_down") == "arrow_down" else None
+        draw_visual(img, st.get("visual_spec", {"visual": st.get("visual", "arrow_down")}), dy=190)
         logo(img, 64, 150, 130)
         y = headline(img, st["title"], 80, 1500, 920, st.get("size", 70))
         d = ImageDraw.Draw(img)

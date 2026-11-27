@@ -1,0 +1,5 @@
+{"slides": [{"visual": "bars", "values": [0.2, -0.2, 0.0, -0.2], "labels": ["T4 2025", "T1 2026", "T2 2026", "T3 2026"], "title": "Le PIB français recule de 0,2 % au 3e trimestre, selon l'Insee"}],
+ "story": {"visual_spec": {"visual": "bars", "values": [0.2, -0.2, 0.0, -0.2], "labels": ["T4 2025", "T1 2026", "T2 2026", "T3 2026"]},
+  "title": "Le PIB français recule de 0,2 % au 3e trimestre",
+  "facts": ["PIB : −0,2 % après 0,0 % au 2e trimestre", "Exportations : −1,6 %, investissement : −0,9 %", "Pouvoir d'achat par personne : +0,2 %"],
+  "source": "Source : Insee, Informations rapides n° 292 (27/11/2026)"}}
