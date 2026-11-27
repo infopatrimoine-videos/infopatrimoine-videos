@@ -465,6 +465,23 @@ def icon_extra(dd, name, cx, cy, s, c):
         dd.ellipse([X(-0.3), Y(-0.3), X(0.3), Y(0.3)], outline=N, width=5 * S)
         dd.text((X(0), Y(0)), "€", font=F("XB", int(s * 0.42) * S), fill=N, anchor="mm")
 
+def photo_bg(path, W, H, dark=0.5):
+    """photo Unsplash en fond : recadrée, assombrie en bleu nuit, dégradé fort en bas (titre) et en haut (logo)."""
+    ph = Image.open(path).convert("RGB"); w, h = ph.size; r = max(W / w, H / h)
+    ph = ph.resize((int(w * r) + 1, int(h * r) + 1), Image.LANCZOS)
+    x = (ph.width - W) // 2; y = (ph.height - H) // 2; ph = ph.crop((x, y, x + W, y + H))
+    a = np.asarray(ph).astype(np.float32) / 255
+    g = a.mean(axis=2, keepdims=True); a = a * 0.75 + g * 0.25          # un peu désaturée
+    yy = np.linspace(0, 1, H)[:, None, None]
+    k = dark + (1 - dark) * np.clip((yy - 0.45) / 0.4, 0, 1) ** 1.3      # bas presque opaque
+    k = np.maximum(k, 0.75 * np.clip((0.16 - yy) / 0.16, 0, 1))         # haut sombre pour le logo
+    navy = np.array(NAVY0, np.float32)[None, None] / 255
+    out = a * (1 - k) + navy * k
+    return Image.fromarray((out * 255).astype(np.uint8)).convert("RGBA")
+
+def credit(img, W, H, txt):
+    if txt: ImageDraw.Draw(img).text(((W - 40) * S, (H - 26) * S), txt, font=F("M", 22 * S), fill=MUTED + (220,), anchor="rm")
+
 def page_tag(img, W, k, n):
     lay = Image.new("RGBA", img.size, (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
     dl.rounded_rectangle([(W - 150) * S, 60 * S, (W - 44) * S, 124 * S], 32 * S, fill=(255, 255, 255, 38))
@@ -537,16 +554,21 @@ def render(spec, outdir):
     n = len(spec["slides"])
     for k, sl in enumerate(spec["slides"], 1):
         W, H = 1080, 1350
-        img = bg(W * S, H * S, glow=sl.get("glow", (0.55, 0.38)))
-        draw_visual(img, sl)
+        if sl.get("photo"): img = photo_bg(sl["photo"], W * S, H * S, sl.get("dark", 0.5))
+        else: img = bg(W * S, H * S, glow=sl.get("glow", (0.55, 0.38)))
+        if sl.get("visual", "none") != "none": draw_visual(img, sl)
+        credit(img, W, H, sl.get("credit", ""))
         logo(img, 64, 48, 118)
         if spec.get("page_tag"): page_tag(img, W, k, n)   # désactivé par défaut (demande de Tomas, 27/11)
         headline(img, sl["title"], 80, 1270, 900, sl.get("size", 64))
         out = os.path.join(outdir, f"post_{k}.jpg"); finish(img, out); outs.append(out)
     if spec.get("story"):
         st = spec["story"]; W, H = 1080, 1920
-        img = bg(W * S, H * S, glow=(0.55, 0.4))
-        draw_visual(img, st.get("visual_spec", {"visual": st.get("visual", "arrow_down")}), dy=190)
+        if st.get("photo"): img = photo_bg(st["photo"], W * S, H * S, st.get("dark", 0.5))
+        else: img = bg(W * S, H * S, glow=(0.55, 0.4))
+        vs = st.get("visual_spec", {"visual": st.get("visual", "none" if st.get("photo") else "arrow_down")})
+        if vs.get("visual", "none") != "none": draw_visual(img, vs, dy=190)
+        credit(img, W, H, st.get("credit", ""))
         logo(img, 64, 150, 130)
         y = headline(img, st["title"], 80, 1500, 920, st.get("size", 70))
         d = ImageDraw.Draw(img)
