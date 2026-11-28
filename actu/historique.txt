@@ -4,3 +4,5 @@
 2026-11-27 | Confiance des ménages 82 en novembre | Insee IR n°286, 25/11/2026 | line, stat3, timeline | photos Unsplash : 741iShluYhk, v6sJ17rJ2lo, vWcK7vkq_OE
 2026-11-27 | Prix de production des services +2,8 % sur un an (T3) | Insee IR n°291, 26/11/2026 | bars, icon, quote | photos Unsplash : YnSWpIPX3pE, 1Elnip2SeM8, qKfSyHj1Y20
 2026-11-27 | Climat des affaires 95 en novembre | Insee IR n°276, 20/11/2026 | gauge, ticker, calendar | photos Unsplash : uAE9TIp9gGU, U1bHWKGPXQU, B6UBNzI5SKg
+2026-11-28 | Consommation des ménages en biens stable en octobre (0,0 %) | Insee IR n°293, 27/11/2026 | figure, balance, receipt | photos Unsplash : 1Pgq9ZpIatI, PQmXUxmfR44, adCT4qOQeY4
+2026-11-28 | Prix des logements anciens -1,2 % sur un an (T3 2026) | Insee IR n°284 (indices Notaires-Insee), 24/11/2026 | arrow_down, ranking, bars | photos Unsplash : U8Ygo0wNNZI, iBY4OatZaSM, 0juktkOTkpU
